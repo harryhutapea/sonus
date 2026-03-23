@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:sonus/pages/main_page.dart';
+import 'package:sonus/theme/app_theme.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -9,7 +10,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Sonus',
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
+      debugShowCheckedModeBanner: false,
+      theme: appTheme,
+      themeMode: ThemeMode.dark,
       home: const MainPage(),
     );
   }

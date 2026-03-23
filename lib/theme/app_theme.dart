@@ -1,0 +1,42 @@
+import 'package:flutter/material.dart';
+
+import 'package:sonus/theme/app_colors.dart';
+
+final ThemeData appTheme = ThemeData(
+  useMaterial3: true,
+  brightness: Brightness.dark, 
+  
+  colorScheme: ColorScheme.fromSeed(
+    seedColor: AppColors.brand,
+    brightness: Brightness.dark,
+    primary: AppColors.brand,
+    onPrimary: Colors.white,
+    surface: AppColors.surface,
+    onSurface: AppColors.onSurface,
+    surfaceContainer: AppColors.surfaceContainer,
+    onSurfaceVariant: AppColors.onSurfaceVariant,
+  ),
+
+  scaffoldBackgroundColor: AppColors.surface,
+
+  appBarTheme: const AppBarTheme(
+    backgroundColor: AppColors.surface,
+    elevation: 0,
+    centerTitle: false,
+    iconTheme: IconThemeData(color: AppColors.onSurface),
+  ),
+
+  bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+    backgroundColor: AppColors.surface,
+    selectedItemColor: AppColors.brand,
+    unselectedItemColor: AppColors.onSurfaceVariant,
+    type: BottomNavigationBarType.fixed,
+    elevation: 0,
+  ),
+
+  cardTheme: CardThemeData(
+    color: AppColors.surfaceContainer,
+    elevation: 0,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+  ),
+);
