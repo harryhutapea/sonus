@@ -4,8 +4,8 @@ import 'package:sonus/theme/app_colors.dart';
 
 final ThemeData appTheme = ThemeData(
   useMaterial3: true,
-  brightness: Brightness.dark, 
-  
+  brightness: Brightness.dark,
+
   colorScheme: ColorScheme.fromSeed(
     seedColor: AppColors.brand,
     brightness: Brightness.dark,
@@ -27,12 +27,17 @@ final ThemeData appTheme = ThemeData(
   ),
 
   bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-    backgroundColor: AppColors.surface,
+    backgroundColor: AppColors.surfaceDim,
     selectedItemColor: AppColors.brand,
     unselectedItemColor: AppColors.onSurfaceVariant,
     type: BottomNavigationBarType.fixed,
     elevation: 0,
+    selectedLabelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+    unselectedLabelStyle: TextStyle(fontSize: 14),
+    enableFeedback: false,
   ),
+
+  splashFactory: NoSplash.splashFactory,
 
   cardTheme: CardThemeData(
     color: AppColors.surfaceContainer,
