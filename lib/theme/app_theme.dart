@@ -6,6 +6,8 @@ final ThemeData appTheme = ThemeData(
   useMaterial3: true,
   brightness: Brightness.dark,
 
+  fontFamily: 'RopaSans',
+
   colorScheme: ColorScheme.fromSeed(
     seedColor: AppColors.brand,
     brightness: Brightness.dark,
@@ -28,20 +30,22 @@ final ThemeData appTheme = ThemeData(
 
   bottomNavigationBarTheme: const BottomNavigationBarThemeData(
     backgroundColor: AppColors.surfaceDim,
-    selectedItemColor: AppColors.brand,
     unselectedItemColor: AppColors.onSurfaceVariant,
     type: BottomNavigationBarType.fixed,
     elevation: 0,
-    selectedLabelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+    selectedLabelStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
     unselectedLabelStyle: TextStyle(fontSize: 14),
     enableFeedback: false,
   ),
-
-  splashFactory: NoSplash.splashFactory,
 
   cardTheme: CardThemeData(
     color: AppColors.surfaceContainer,
     elevation: 0,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
   ),
+
+  splashFactory: NoSplash.splashFactory,
+  highlightColor: Colors.transparent,
+  splashColor: Colors.transparent,
+
 );

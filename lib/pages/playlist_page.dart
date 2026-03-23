@@ -10,6 +10,9 @@ class PlaylistPage extends StatefulWidget {
 class _PlaylistPageState extends State<PlaylistPage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: Center(child: Text("Playlist Page")));
+    return Scaffold(
+      appBar: AppBar(title: Text("Playlist"), centerTitle: true),
+      body: Center(child: Text("Playlist Page")),
+    );
   }
 }
