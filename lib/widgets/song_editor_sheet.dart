@@ -6,10 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:sonus/models/song.dart';
 import 'package:sonus/theme/app_colors.dart';
 
-Future<void> showSongEditorSheet(
-  BuildContext context,
-  Song song,
-) async {
+Future<void> showSongEditorSheet(BuildContext context, Song song) async {
   // Controllers must be created before the sheet opens and disposed only
   // after it fully closes — using whenComplete avoids the _dependents.isEmpty
   // crash that happened when they were disposed right after await returned.
@@ -34,7 +31,8 @@ Future<void> showSongEditorSheet(
       return StatefulBuilder(
         builder: (context, setSheetState) {
           final file = File(coverPath);
-          final hasFileCover = coverPath.isNotEmpty &&
+          final hasFileCover =
+              coverPath.isNotEmpty &&
               !coverPath.startsWith('assets/') &&
               file.existsSync();
 
@@ -66,8 +64,7 @@ Future<void> showSongEditorSheet(
                 left: 16,
                 right: 16,
                 top: 16,
-                bottom:
-                    16 + MediaQuery.of(sheetContext).viewInsets.bottom,
+                bottom: 16 + MediaQuery.of(sheetContext).viewInsets.bottom,
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -151,10 +148,11 @@ Future<void> showSongEditorSheet(
                               foregroundColor: AppColors.surfaceDim,
                             ),
                             onPressed: () async {
-                              final newSongName =
-                                  songNameController.text.trim();
-                              final newArtistName =
-                                  artistNameController.text.trim();
+                              FocusScope.of(context).unfocus();
+                              final newSongName = songNameController.text
+                                  .trim();
+                              final newArtistName = artistNameController.text
+                                  .trim();
 
                               if (newSongName.isEmpty) return;
 
@@ -185,9 +183,15 @@ Future<void> showSongEditorSheet(
 
                               if (changed) await song.save();
 
-                              if (sheetContext.mounted) {
-                                Navigator.pop(sheetContext);
-                              }
+                              // if (sheetContext.mounted) {
+                              //   // Navigator.pop(sheetContext);
+                              //   Navigator.of(context).pop();
+                              // }
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (sheetContext.mounted) {
+                                  Navigator.of(context).pop();
+                                }
+                              });
                             },
                             child: const Text('Save'),
                           ),
