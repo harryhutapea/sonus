@@ -1,20 +1,14 @@
 import 'package:flutter/material.dart';
-
-// import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:sonus/models/playlist.dart';
 import 'package:sonus/models/song.dart';
-
-import 'package:sonus/services/database_service.dart';
-
 import 'package:sonus/theme/app_colors.dart';
-
-// import 'package:sonus/utils/hive_boxes.dart';
-
+import 'package:sonus/utils/hive_boxes.dart';
 import 'package:sonus/widgets/hover_marquee_text.dart';
 import 'package:sonus/widgets/song_editor_sheet.dart';
 
-class PlaylistDetailPage extends StatefulWidget {
+class PlaylistDetailPage extends StatelessWidget {
   final Playlist playlist;
 
   const PlaylistDetailPage({
@@ -22,40 +16,25 @@ class PlaylistDetailPage extends StatefulWidget {
     required this.playlist,
   });
 
-  @override
-  State<PlaylistDetailPage> createState() => _PlaylistDetailPageState();
-}
-
-class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
-  List<Song> get _playlistSongs =>
-      (widget.playlist.listOfSongs as List).cast<Song>();
-
-  Future<void> _openSongEditor(Song song) async {
-    await showSongEditorSheet(
-      context,
-      song,
-      onSaved: () {
-        if (mounted) setState(() {});
-      },
-    );
+  Future<void> _openSongEditor(BuildContext context, Song song) async {
+    await showSongEditorSheet(context, song);
   }
 
   Future<void> _removeSongFromPlaylist(Song song) async {
-    // widget.playlist.listOfSongs.removeWhere(
+    // playlist.listOfSongs.removeWhere(
     //   (item) => item is Song && item.songPath == song.songPath,
     // );
-    await widget.playlist.save();
-    if (mounted) setState(() {});
+    await playlist.save();
   }
 
-  Future<void> _showAddSongsSheet() async {
-    final allSongs = DatabaseService().getAllSongs().cast<Song>().toList();
-    final existingPaths = _playlistSongs.map((song) => song.songPath).toSet();
+  Future<void> _showAddSongsSheet(BuildContext context) async {
+    final songBox = Hive.box<Song>(HiveBoxes.songs);
+    final allSongs = songBox.values.toList();
+    final existingPaths =
+        (playlist.listOfSongs as List).cast<Song>().map((s) => s.songPath).toSet();
 
-    final availableSongs = allSongs
-        .where((song) => !existingPaths.contains(song.songPath))
-        .toList();
-
+    final availableSongs =
+        allSongs.where((song) => !existingPaths.contains(song.songPath)).toList();
     final selectedPaths = <String>{};
 
     await showModalBottomSheet<void>(
@@ -79,7 +58,7 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
                         children: [
                           Expanded(
                             child: Text(
-                              'Add songs to playlist',
+                              'Add songs',
                               style: TextStyle(
                                 color: AppColors.onSurface,
                                 fontSize: 18,
@@ -89,17 +68,15 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
                           ),
                           TextButton(
                             onPressed: () async {
-                              widget.playlist.listOfSongs.addAll(
+                              playlist.listOfSongs.addAll(
                                 availableSongs.where(
-                                  (song) =>
-                                      selectedPaths.contains(song.songPath),
+                                  (song) => selectedPaths.contains(song.songPath),
                                 ),
                               );
-                              await widget.playlist.save();
+                              await playlist.save();
                               if (sheetContext.mounted) {
                                 Navigator.pop(sheetContext);
                               }
-                              if (mounted) setState(() {});
                             },
                             child: const Text('Done'),
                           ),
@@ -160,7 +137,7 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
     );
   }
 
-  Widget _buildSongTile(Song song) {
+  Widget _buildSongTile(BuildContext context, Song song) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Material(
@@ -184,21 +161,18 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
           ),
           title: HoverMarqueeText(song.songName),
           subtitle: Text(song.artistName),
-          onTap: () => _openSongEditor(song),
+          onTap: () => _openSongEditor(context, song),
           trailing: PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
+            onSelected: (value) async {
               if (value == 'edit') {
-                Future.microtask(() => _openSongEditor(song));
+                await _openSongEditor(context, song);
               } else if (value == 'remove') {
-                Future.microtask(() => _removeSongFromPlaylist(song));
+                await _removeSongFromPlaylist(song);
               }
             },
             itemBuilder: (context) => const [
-              PopupMenuItem(
-                value: 'edit',
-                child: Text('Edit'),
-              ),
+              PopupMenuItem(value: 'edit', child: Text('Edit')),
               PopupMenuItem(
                 value: 'remove',
                 child: Text('Remove from playlist'),
@@ -212,64 +186,76 @@ class _PlaylistDetailPageState extends State<PlaylistDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final coverPath = widget.playlist.coverImagePath.isEmpty
+    final coverPath = playlist.coverImagePath.isEmpty
         ? 'assets/images/default_playlist_cover.png'
-        : widget.playlist.coverImagePath;
+        : playlist.coverImagePath;
+
+    // final songs = (playlist.listOfSongs as List).cast<Song>();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.playlist.playlistName),
+        title: Text(playlist.playlistName),
         centerTitle: true,
       ),
-      body: Column(
-        children: [
-          const SizedBox(height: 14),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: Image.asset(
-                coverPath,
-                height: 220,
-                width: double.infinity,
-                fit: BoxFit.cover,
-              ),
-            ),
-          ),
-          const SizedBox(height: 14),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.onSurface,
-                  foregroundColor: AppColors.surfaceDim,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                onPressed: _showAddSongsSheet,
-                icon: const Icon(Icons.add),
-                label: const Text('Add songs'),
-              ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: _playlistSongs.isEmpty
-                ? Center(
-                    child: Text(
-                      'No songs in this playlist yet.',
-                      style: TextStyle(color: AppColors.onSurface),
-                    ),
-                  )
-                : ListView.builder(
-                    itemCount: _playlistSongs.length,
-                    itemBuilder: (context, index) {
-                      return _buildSongTile(_playlistSongs[index]);
-                    },
+      body: ValueListenableBuilder(
+        valueListenable: Hive.box<Playlist>(HiveBoxes.playlist).listenable(),
+        builder: (context, box, _) {
+          final updatedPlaylist = box.get(playlist.key) as Playlist?;
+          final updatedSongs =
+              (updatedPlaylist?.listOfSongs ?? playlist.listOfSongs as List)
+                  .cast<Song>();
+
+          return Column(
+            children: [
+              const SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: Image.asset(
+                    coverPath,
+                    height: 220,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
                   ),
-          ),
-        ],
+                ),
+              ),
+              const SizedBox(height: 14),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.onSurface,
+                      foregroundColor: AppColors.surfaceDim,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () => _showAddSongsSheet(context),
+                    icon: const Icon(Icons.add),
+                    label: const Text('Add songs'),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Expanded(
+                child: updatedSongs.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No songs in this playlist yet.',
+                          style: TextStyle(color: AppColors.onSurface),
+                        ),
+                      )
+                    : ListView.builder(
+                        itemCount: updatedSongs.length,
+                        itemBuilder: (context, index) {
+                          return _buildSongTile(context, updatedSongs[index]);
+                        },
+                      ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }

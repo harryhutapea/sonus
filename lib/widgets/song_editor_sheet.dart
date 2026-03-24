@@ -1,18 +1,15 @@
-import 'package:flutter/material.dart';
-
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 
 import 'package:sonus/models/song.dart';
-
 import 'package:sonus/theme/app_colors.dart';
 
 Future<void> showSongEditorSheet(
   BuildContext context,
-  Song song, {
-  VoidCallback? onSaved,
-}) async {
+  Song song,
+) async {
   final songNameController = TextEditingController(text: song.songName);
   final artistNameController = TextEditingController(
     text: song.artistName == 'Unknown Artist' ? '' : song.artistName,
@@ -38,33 +35,28 @@ Future<void> showSongEditorSheet(
           ),
           child: StatefulBuilder(
             builder: (context, setState) {
-              Widget coverPreview;
               final file = File(coverPath);
-              if (coverPath.isNotEmpty &&
-                  !coverPath.startsWith('assets/') &&
-                  file.existsSync()) {
-                coverPreview = ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: Image.file(
-                    file,
-                    width: 170,
-                    height: 170,
-                    fit: BoxFit.cover,
-                  ),
-                );
-              } else {
-                coverPreview = ClipRRect(
-                  borderRadius: BorderRadius.circular(18),
-                  child: Image.asset(
-                    coverPath.isEmpty
-                        ? 'assets/images/default_song_cover.png'
-                        : coverPath,
-                    width: 170,
-                    height: 170,
-                    fit: BoxFit.cover,
-                  ),
-                );
-              }
+              final hasFileCover =
+                  coverPath.isNotEmpty && !coverPath.startsWith('assets/') && file.existsSync();
+
+              final coverPreview = ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: hasFileCover
+                    ? Image.file(
+                        file,
+                        width: 170,
+                        height: 170,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.asset(
+                        coverPath.isEmpty
+                            ? 'assets/images/default_song_cover.png'
+                            : coverPath,
+                        width: 170,
+                        height: 170,
+                        fit: BoxFit.cover,
+                      ),
+              );
 
               return SingleChildScrollView(
                 child: Column(
@@ -139,10 +131,8 @@ Future<void> showSongEditorSheet(
                               foregroundColor: AppColors.surfaceDim,
                             ),
                             onPressed: () async {
-                              final newSongName = songNameController.text
-                                  .trim();
-                              final newArtistName = artistNameController.text
-                                  .trim();
+                              final newSongName = songNameController.text.trim();
+                              final newArtistName = artistNameController.text.trim();
 
                               if (newSongName.isEmpty) return;
 
@@ -159,10 +149,6 @@ Future<void> showSongEditorSheet(
                               if (sheetContext.mounted) {
                                 Navigator.pop(sheetContext);
                               }
-
-                              Future.microtask(() {
-                                onSaved?.call();
-                              });
                             },
                             child: const Text('Save'),
                           ),
