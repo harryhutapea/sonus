@@ -15,8 +15,8 @@ class AppIcon extends StatelessWidget {
       'assets/svg/$assetName.svg',
       height: size,
       width: size,
-      colorFilter: color != null 
-          ? ColorFilter.mode(color!, BlendMode.srcIn) 
+      colorFilter: color != null
+          ? ColorFilter.mode(color!, BlendMode.srcIn)
           : null,
     );
   }

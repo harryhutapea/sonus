@@ -8,6 +8,8 @@ final ThemeData appTheme = ThemeData(
 
   fontFamily: 'RopaSans',
 
+  scaffoldBackgroundColor: AppColors.surface,
+
   colorScheme: ColorScheme.fromSeed(
     seedColor: AppColors.brand,
     brightness: Brightness.dark,
@@ -18,8 +20,6 @@ final ThemeData appTheme = ThemeData(
     surfaceContainer: AppColors.surfaceContainer,
     onSurfaceVariant: AppColors.onSurfaceVariant,
   ),
-
-  scaffoldBackgroundColor: AppColors.surface,
 
   appBarTheme: const AppBarTheme(
     backgroundColor: AppColors.surface,
@@ -47,5 +47,4 @@ final ThemeData appTheme = ThemeData(
   splashFactory: NoSplash.splashFactory,
   highlightColor: Colors.transparent,
   splashColor: Colors.transparent,
-
 );

@@ -16,6 +16,7 @@ dependencies:
   just_audio_background: ^0.0.1-beta.17
   file_picker: ^10.3.10
   permission_handler: ^12.0.1
+  audiotags: ^1.4.5
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   path: ^1.9.1
@@ -24,6 +25,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   audio_video_progress_bar: ^2.0.3
   rxdart: ^0.28.0
+  on_audio_query: ^2.9.0
 
 dev_dependencies:
   flutter_test:
@@ -47,3 +49,9 @@ flutter:
     - family: RopaSans
       fonts:
         - asset: assets/fonts/RopaSans-Regular.ttf
+
+dependency_overrides:
+  on_audio_query_android:
+    git:
+      url: https://github.com/LucJosin/on_audio_query.git
+      path: packages/on_audio_query_android
