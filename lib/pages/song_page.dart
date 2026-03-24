@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import 'package:hive_flutter/hive_flutter.dart';
@@ -5,14 +7,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:sonus/models/song.dart';
-
-// import 'package:sonus/services/database_service.dart';
 import 'package:sonus/services/music_scanner_service.dart';
-
 import 'package:sonus/theme/app_colors.dart';
-
 import 'package:sonus/utils/hive_boxes.dart';
-
 import 'package:sonus/widgets/hover_marquee_text.dart';
 import 'package:sonus/widgets/song_editor_sheet.dart';
 
@@ -20,12 +17,11 @@ class SongPage extends StatefulWidget {
   const SongPage({super.key});
 
   @override
-  State createState() => _SongPageState();
+  State<SongPage> createState() => _SongPageState();
 }
 
-class _SongPageState extends State {
+class _SongPageState extends State<SongPage> {
   bool _isScanning = false;
-  // final _db = DatabaseService();
   final _scanner = MusicScannerService();
 
   Future<void> _handleRescan() async {
@@ -40,22 +36,52 @@ class _SongPageState extends State {
           statuses[Permission.storage]!.isGranted) {
         await _scanner.syncLibrary();
         if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(const SnackBar(content: Text('Library updated!')));
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Library updated!')),
+          );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Permission required to see songs.')),
+            const SnackBar(
+                content: Text('Permission required to see songs.')),
           );
         }
       }
     } catch (e) {
-      print('Error: $e');
+      debugPrint('Error: $e');
     } finally {
       if (mounted) setState(() => _isScanning = false);
     }
+  }
+
+  /// Builds the cover widget for a song — respects file paths set by the
+  /// editor as well as the default asset fallback.
+  Widget _buildCover(Song song) {
+    final path = song.coverPath;
+    final isAsset = path.isEmpty || path.startsWith('assets/');
+
+    if (!isAsset) {
+      final file = File(path);
+      if (file.existsSync()) {
+        return Image.file(
+          file,
+          key: ValueKey(path), // ensures image cache is busted on path change
+          width: 48,
+          height: 48,
+          fit: BoxFit.cover,
+        );
+      }
+    }
+
+    return Image.asset(
+      isAsset && path.isNotEmpty
+          ? path
+          : 'assets/images/default_song_cover.png',
+      width: 48,
+      height: 48,
+      fit: BoxFit.cover,
+    );
   }
 
   @override
@@ -91,18 +117,22 @@ class _SongPageState extends State {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    leading: Image.asset(
-                      'assets/images/default_song_cover.png',
+                    // ✅ Fixed: was always showing the default asset.
+                    //    Now reads song.coverPath and handles file paths too.
+                    leading: ClipRRect(
+                      borderRadius: BorderRadius.circular(6),
+                      child: _buildCover(song),
                     ),
                     title: HoverMarqueeText(song.songName),
                     subtitle: Text(song.artistName),
-                    trailing: PopupMenuButton(
+                    trailing: PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert),
                       onSelected: (String result) {
                         if (result == 'Edit') {
+                          // microtask keeps us off the build frame so no
+                          // setState-during-build issues.
                           Future.microtask(() {
                             if (!context.mounted) return;
-
                             showSongEditorSheet(context, song);
                           });
                         }
