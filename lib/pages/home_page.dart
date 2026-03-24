@@ -42,7 +42,7 @@ class _HomePageState extends State<HomePage> {
           // 4. Never show this again
           await db.markFirstRunCompleted();
 
-          setState(() {}); // Refresh UI to show the new songs
+          // setState(() {}); // Refresh UI to show the new songs
         }
       }
     }
