@@ -11,10 +11,7 @@ import 'package:sonus/widgets/song_editor_sheet.dart';
 class PlaylistDetailPage extends StatelessWidget {
   final Playlist playlist;
 
-  const PlaylistDetailPage({
-    super.key,
-    required this.playlist,
-  });
+  const PlaylistDetailPage({super.key, required this.playlist});
 
   Future<void> _openSongEditor(BuildContext context, Song song) async {
     await showSongEditorSheet(context, song);
@@ -30,11 +27,14 @@ class PlaylistDetailPage extends StatelessWidget {
   Future<void> _showAddSongsSheet(BuildContext context) async {
     final songBox = Hive.box<Song>(HiveBoxes.songs);
     final allSongs = songBox.values.toList();
-    final existingPaths =
-        (playlist.listOfSongs as List).cast<Song>().map((s) => s.songPath).toSet();
+    final existingPaths = (playlist.listOfSongs as List)
+        .cast<Song>()
+        .map((s) => s.songPath)
+        .toSet();
 
-    final availableSongs =
-        allSongs.where((song) => !existingPaths.contains(song.songPath)).toList();
+    final availableSongs = allSongs
+        .where((song) => !existingPaths.contains(song.songPath))
+        .toList();
     final selectedPaths = <String>{};
 
     await showModalBottomSheet<void>(
@@ -70,7 +70,8 @@ class PlaylistDetailPage extends StatelessWidget {
                             onPressed: () async {
                               playlist.listOfSongs.addAll(
                                 availableSongs.where(
-                                  (song) => selectedPaths.contains(song.songPath),
+                                  (song) =>
+                                      selectedPaths.contains(song.songPath),
                                 ),
                               );
                               await playlist.save();
@@ -96,8 +97,9 @@ class PlaylistDetailPage extends StatelessWidget {
                               itemCount: availableSongs.length,
                               itemBuilder: (context, index) {
                                 final song = availableSongs[index];
-                                final selected =
-                                    selectedPaths.contains(song.songPath);
+                                final selected = selectedPaths.contains(
+                                  song.songPath,
+                                );
 
                                 return CheckboxListTile(
                                   value: selected,
@@ -193,16 +195,13 @@ class PlaylistDetailPage extends StatelessWidget {
     // final songs = (playlist.listOfSongs as List).cast<Song>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(playlist.playlistName),
-        centerTitle: true,
-      ),
+      appBar: AppBar(title: Text(playlist.playlistName), centerTitle: true),
       body: ValueListenableBuilder(
         valueListenable: Hive.box<Playlist>(HiveBoxes.playlist).listenable(),
         builder: (context, box, _) {
           final updatedPlaylist = box.get(playlist.key) as Playlist?;
           final updatedSongs =
-              (updatedPlaylist?.listOfSongs ?? playlist.listOfSongs as List)
+              (updatedPlaylist?.listOfSongs ?? playlist.listOfSongs)
                   .cast<Song>();
 
           return Column(
