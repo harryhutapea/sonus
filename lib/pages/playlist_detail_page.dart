@@ -3,6 +3,8 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:sonus/models/playlist.dart';
 import 'package:sonus/models/song.dart';
+import 'package:sonus/pages/main_page.dart';
+import 'package:sonus/services/player_service.dart';
 import 'package:sonus/theme/app_colors.dart';
 import 'package:sonus/utils/hive_boxes.dart';
 import 'package:sonus/widgets/hover_marquee_text.dart';
@@ -139,7 +141,7 @@ class PlaylistDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSongTile(BuildContext context, Song song) {
+  Widget _buildSongTile(BuildContext context, Song song, int index, List<Song> allSongs) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Material(
@@ -163,7 +165,13 @@ class PlaylistDetailPage extends StatelessWidget {
           ),
           title: HoverMarqueeText(song.songName),
           subtitle: Text(song.artistName),
-          onTap: () => _openSongEditor(context, song),
+          onTap: () {
+            // Play this song from the playlist queue
+            PlayerService().playQueue(allSongs, index, playlist.playlistName);
+            // Pop back to MainPage and switch to Home tab
+            Navigator.of(context).popUntil((route) => route.isFirst);
+            MainPage.pageIndexNotifier.value = 1;
+          },
           trailing: PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert),
             onSelected: (value) async {
@@ -199,7 +207,7 @@ class PlaylistDetailPage extends StatelessWidget {
       body: ValueListenableBuilder(
         valueListenable: Hive.box<Playlist>(HiveBoxes.playlist).listenable(),
         builder: (context, box, _) {
-          final updatedPlaylist = box.get(playlist.key);
+          final updatedPlaylist = box.get(playlist.key) as Playlist?;
           final updatedSongs =
               (updatedPlaylist?.listOfSongs ?? playlist.listOfSongs)
                   .cast<Song>();
@@ -248,7 +256,7 @@ class PlaylistDetailPage extends StatelessWidget {
                     : ListView.builder(
                         itemCount: updatedSongs.length,
                         itemBuilder: (context, index) {
-                          return _buildSongTile(context, updatedSongs[index]);
+                          return _buildSongTile(context, updatedSongs[index], index, updatedSongs);
                         },
                       ),
               ),

@@ -7,7 +7,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import 'package:sonus/models/song.dart';
+import 'package:sonus/pages/main_page.dart';
 import 'package:sonus/services/music_scanner_service.dart';
+import 'package:sonus/services/player_service.dart';
 import 'package:sonus/theme/app_colors.dart';
 import 'package:sonus/utils/hive_boxes.dart';
 import 'package:sonus/widgets/hover_marquee_text.dart';
@@ -117,6 +119,12 @@ class _SongPageState extends State<SongPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
+                    onTap: () {
+                      // Play the tapped song from the full "All Songs" queue
+                      PlayerService().playQueue(songs, index, 'All Songs');
+                      // Switch to the Home (player) tab
+                      MainPage.pageIndexNotifier.value = 1;
+                    },
                     // ✅ Fixed: was always showing the default asset.
                     //    Now reads song.coverPath and handles file paths too.
                     leading: ClipRRect(
