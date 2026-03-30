@@ -62,7 +62,7 @@ dependency_overrides:
 flutter_launcher_icons:
   # General fallback (used for iOS)
   # This should be your logo on a SOLID blue background (No transparency!)
-  image_path: "assets/icon_ios_blue_background.png" 
+  image_path: "assets/icon/icon_ios_blue_background.png" 
 
   ios: true
   remove_alpha_ios: true # Ensures Apple won't reject it

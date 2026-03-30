@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -15,16 +17,76 @@ class PlaylistDetailPage extends StatelessWidget {
 
   const PlaylistDetailPage({super.key, required this.playlist});
 
-  Future<void> _openSongEditor(BuildContext context, Song song) async {
-    await showSongEditorSheet(context, song);
+  // ─── Cover helpers ─────────────────────────────────────────────────────────
+
+  /// Safely builds a cover image that works for both asset paths and file paths.
+  /// ✅ FIX: previously used Image.asset() for all paths, which crashes when
+  /// coverPath is a local file path (e.g. /storage/emulated/0/...).
+  Widget _buildCover(String path, {double size = 52, double radius = 8}) {
+    final isAsset = path.isEmpty || path.startsWith('assets/');
+
+    if (!isAsset) {
+      final file = File(path);
+      if (file.existsSync()) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(radius),
+          child: Image.file(
+            file,
+            key: ValueKey(path),
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+          ),
+        );
+      }
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(radius),
+      child: Image.asset(
+        (isAsset && path.isNotEmpty)
+            ? path
+            : 'assets/images/default_song_cover.png',
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+      ),
+    );
   }
 
-  Future<void> _removeSongFromPlaylist(Song song) async {
-    // playlist.listOfSongs.removeWhere(
-    //   (item) => item is Song && item.songPath == song.songPath,
-    // );
-    await playlist.save();
+  Widget _buildPlaylistCover(String path) {
+    final isAsset = path.isEmpty || path.startsWith('assets/');
+
+    if (!isAsset) {
+      final file = File(path);
+      if (file.existsSync()) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Image.file(
+            file,
+            key: ValueKey(path),
+            height: 220,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+        );
+      }
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24),
+      child: Image.asset(
+        (isAsset && path.isNotEmpty)
+            ? path
+            : 'assets/images/default_playlist_cover.png',
+        height: 220,
+        width: double.infinity,
+        fit: BoxFit.cover,
+      ),
+    );
   }
+
+  // ─── Add songs sheet ────────────────────────────────────────────────────────
 
   Future<void> _showAddSongsSheet(BuildContext context) async {
     final songBox = Hive.box<Song>(HiveBoxes.songs);
@@ -72,8 +134,7 @@ class PlaylistDetailPage extends StatelessWidget {
                             onPressed: () async {
                               playlist.listOfSongs.addAll(
                                 availableSongs.where(
-                                  (song) =>
-                                      selectedPaths.contains(song.songPath),
+                                  (song) => selectedPaths.contains(song.songPath),
                                 ),
                               );
                               await playlist.save();
@@ -99,10 +160,8 @@ class PlaylistDetailPage extends StatelessWidget {
                               itemCount: availableSongs.length,
                               itemBuilder: (context, index) {
                                 final song = availableSongs[index];
-                                final selected = selectedPaths.contains(
-                                  song.songPath,
-                                );
-
+                                final selected =
+                                    selectedPaths.contains(song.songPath);
                                 return CheckboxListTile(
                                   value: selected,
                                   onChanged: (value) {
@@ -114,17 +173,8 @@ class PlaylistDetailPage extends StatelessWidget {
                                       }
                                     });
                                   },
-                                  secondary: ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.asset(
-                                      song.coverPath.isEmpty
-                                          ? 'assets/images/default_song_cover.png'
-                                          : song.coverPath,
-                                      width: 48,
-                                      height: 48,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
+                                  // ✅ FIX: was Image.asset(song.coverPath) — crashes on file paths
+                                  secondary: _buildCover(song.coverPath),
                                   title: Text(song.songName),
                                   subtitle: Text(song.artistName),
                                 );
@@ -141,7 +191,14 @@ class PlaylistDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSongTile(BuildContext context, Song song, int index, List<Song> allSongs) {
+  // ─── Song tile ──────────────────────────────────────────────────────────────
+
+  Widget _buildSongTile(
+    BuildContext context,
+    Song song,
+    int index,
+    List<Song> allSongs,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       child: Material(
@@ -152,23 +209,12 @@ class PlaylistDetailPage extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
-          leading: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: Image.asset(
-              song.coverPath.isEmpty
-                  ? 'assets/images/default_song_cover.png'
-                  : song.coverPath,
-              width: 52,
-              height: 52,
-              fit: BoxFit.cover,
-            ),
-          ),
+          // ✅ FIX: was Image.asset(song.coverPath) — crashes on file paths
+          leading: _buildCover(song.coverPath),
           title: HoverMarqueeText(song.songName),
           subtitle: Text(song.artistName),
           onTap: () {
-            // Play this song from the playlist queue
             PlayerService().playQueue(allSongs, index, playlist.playlistName);
-            // Pop back to MainPage and switch to Home tab
             Navigator.of(context).popUntil((route) => route.isFirst);
             MainPage.pageIndexNotifier.value = 1;
           },
@@ -176,9 +222,11 @@ class PlaylistDetailPage extends StatelessWidget {
             icon: const Icon(Icons.more_vert),
             onSelected: (value) async {
               if (value == 'edit') {
-                await _openSongEditor(context, song);
+                await showSongEditorSheet(context, song);
               } else if (value == 'remove') {
-                await _removeSongFromPlaylist(song);
+                playlist.listOfSongs
+                    .removeWhere((s) => s.songPath == song.songPath);
+                await playlist.save();
               }
             },
             itemBuilder: (context) => const [
@@ -194,13 +242,13 @@ class PlaylistDetailPage extends StatelessWidget {
     );
   }
 
+  // ─── Build ──────────────────────────────────────────────────────────────────
+
   @override
   Widget build(BuildContext context) {
     final coverPath = playlist.coverImagePath.isEmpty
         ? 'assets/images/default_playlist_cover.png'
         : playlist.coverImagePath;
-
-    // final songs = (playlist.listOfSongs as List).cast<Song>();
 
     return Scaffold(
       appBar: AppBar(title: Text(playlist.playlistName), centerTitle: true),
@@ -217,15 +265,8 @@ class PlaylistDetailPage extends StatelessWidget {
               const SizedBox(height: 14),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: Image.asset(
-                    coverPath,
-                    height: 220,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                ),
+                // ✅ FIX: was Image.asset(coverPath) — crashes on file paths
+                child: _buildPlaylistCover(coverPath),
               ),
               const SizedBox(height: 14),
               Padding(
@@ -256,7 +297,12 @@ class PlaylistDetailPage extends StatelessWidget {
                     : ListView.builder(
                         itemCount: updatedSongs.length,
                         itemBuilder: (context, index) {
-                          return _buildSongTile(context, updatedSongs[index], index, updatedSongs);
+                          return _buildSongTile(
+                            context,
+                            updatedSongs[index],
+                            index,
+                            updatedSongs,
+                          );
                         },
                       ),
               ),

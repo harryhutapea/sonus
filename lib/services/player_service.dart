@@ -11,7 +11,6 @@ class PlayerService extends ChangeNotifier {
   factory PlayerService() => _instance;
 
   PlayerService._internal() {
-    // Auto-advance when a song finishes
     _player.playerStateStream.listen((state) {
       if (state.processingState == ProcessingState.completed) {
         _onSongCompleted();
@@ -22,8 +21,8 @@ class PlayerService extends ChangeNotifier {
   // ─── Internal state ──────────────────────────────────────────────────────────
   final AudioPlayer _player = AudioPlayer();
 
-  List<Song> _queue = [];         // original order
-  List<Song> _shuffledQueue = []; // shuffled order (only valid when _isShuffle)
+  List<Song> _queue = [];
+  List<Song> _shuffledQueue = [];
   int _currentIndex = 0;
   String _sourceName = '';
   bool _isShuffle = false;
@@ -44,18 +43,17 @@ class PlayerService extends ChangeNotifier {
   }
 
   bool get hasPrevious => _currentIndex > 0;
-
   bool get hasNext => _currentIndex < activeQueue.length - 1;
 
-  // Streams – used by StreamBuilder widgets in the UI
   Stream<PlayerState> get playerStateStream => _player.playerStateStream;
   Stream<Duration> get positionStream => _player.positionStream;
   Stream<Duration?> get durationStream => _player.durationStream;
 
   // ─── Public commands ─────────────────────────────────────────────────────────
 
-  /// Start playing [songs] from [startIndex], labelled with [sourceName]
-  /// in the AppBar (e.g. a playlist name or "All Songs").
+  /// Start playing [songs] from [startIndex], labelled with [sourceName].
+  /// notifyListeners() is called IMMEDIATELY after setting queue state so the
+  /// UI (HomePage) updates right away — before the async audio load completes.
   Future<void> playQueue(
     List<Song> songs,
     int startIndex,
@@ -70,8 +68,10 @@ class PlayerService extends ChangeNotifier {
       _currentIndex = startIndex.clamp(0, songs.length - 1);
     }
 
-    await _loadCurrent();
+    // ✅ Notify immediately so HomePage shows the song before audio loads
     notifyListeners();
+
+    await _loadCurrent();
   }
 
   Future<void> togglePlayPause() async {
@@ -99,7 +99,6 @@ class PlayerService extends ChangeNotifier {
   }
 
   Future<void> skipPrevious() async {
-    // If we're more than 3 s in, just restart the current song
     if (_player.position.inSeconds > 3) {
       await _player.seek(Duration.zero);
       return;
@@ -113,7 +112,6 @@ class PlayerService extends ChangeNotifier {
 
   void toggleShuffle() {
     if (_isShuffle) {
-      // Turn OFF: find current song in the original queue
       final current = currentSong;
       _isShuffle = false;
       if (current != null) {
@@ -121,7 +119,6 @@ class PlayerService extends ChangeNotifier {
         _currentIndex = idx >= 0 ? idx : 0;
       }
     } else {
-      // Turn ON: build shuffled queue starting with the current song
       final current = currentSong;
       _isShuffle = true;
       final originalIndex =
@@ -154,9 +151,7 @@ class PlayerService extends ChangeNotifier {
     final song = currentSong;
     if (song == null) return;
     try {
-      await _player.setAudioSource(
-        AudioSource.uri(Uri.file(song.songPath)),
-      );
+      await _player.setAudioSource(AudioSource.uri(Uri.file(song.songPath)));
       await _player.play();
     } catch (e) {
       debugPrint('PlayerService._loadCurrent error: $e');
@@ -183,7 +178,6 @@ class PlayerService extends ChangeNotifier {
       _loadCurrent();
       notifyListeners();
     }
-    // RepeatMode.off + last song → player stops naturally
   }
 
   @override

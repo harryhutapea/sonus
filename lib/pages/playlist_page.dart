@@ -6,8 +6,10 @@ import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:sonus/models/playlist.dart';
 import 'package:sonus/models/song.dart';
+import 'package:sonus/pages/main_page.dart';
 import 'package:sonus/pages/playlist_detail_page.dart';
 import 'package:sonus/services/database_service.dart';
+import 'package:sonus/services/player_service.dart';
 import 'package:sonus/theme/app_colors.dart';
 import 'package:sonus/utils/hive_boxes.dart';
 
@@ -70,17 +72,42 @@ class PlaylistPage extends StatelessWidget {
                     MaterialPageRoute(builder: (_) => PlaylistDetailPage(playlist: playlist)),
                   );
                 },
-                trailing: PopupMenuButton<String>(
-                  onSelected: (value) async {
-                    if (value == 'edit') {
-                      _showCreateOrEditDialog(context, playlist: playlist);
-                    } else if (value == 'delete') {
-                      await playlist.delete();
-                    }
-                  },
-                  itemBuilder: (context) => const [
-                    PopupMenuItem(value: 'edit', child: Text('Edit')),
-                    PopupMenuItem(value: 'delete', child: Text('Delete')),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // ── Play button ─────────────────────────────────────────
+                    IconButton(
+                      icon: const Icon(Icons.play_circle_rounded),
+                      iconSize: 28,
+                      color: AppColors.onSurface,
+                      tooltip: 'Play playlist',
+                      onPressed: () {
+                        final songs = (playlist.listOfSongs as List)
+                            .cast<Song>()
+                            .toList();
+                        if (songs.isEmpty) return;
+                        PlayerService().playQueue(
+                          songs,
+                          0,
+                          playlist.playlistName,
+                        );
+                        MainPage.pageIndexNotifier.value = 1;
+                      },
+                    ),
+                    // ── Three-dot menu ──────────────────────────────────────
+                    PopupMenuButton<String>(
+                      onSelected: (value) async {
+                        if (value == 'edit') {
+                          _showCreateOrEditDialog(context, playlist: playlist);
+                        } else if (value == 'delete') {
+                          await playlist.delete();
+                        }
+                      },
+                      itemBuilder: (context) => const [
+                        PopupMenuItem(value: 'edit', child: Text('Edit')),
+                        PopupMenuItem(value: 'delete', child: Text('Delete')),
+                      ],
+                    ),
                   ],
                 ),
               );
