@@ -207,7 +207,7 @@ class PlaylistDetailPage extends StatelessWidget {
       body: ValueListenableBuilder(
         valueListenable: Hive.box<Playlist>(HiveBoxes.playlist).listenable(),
         builder: (context, box, _) {
-          final updatedPlaylist = box.get(playlist.key) as Playlist?;
+          final updatedPlaylist = box.get(playlist.key);
           final updatedSongs =
               (updatedPlaylist?.listOfSongs ?? playlist.listOfSongs)
                   .cast<Song>();

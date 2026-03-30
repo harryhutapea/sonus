@@ -31,6 +31,8 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
 
+  flutter_launcher_icons: ^0.14.4
+
   hive_generator: ^2.0.1
   build_runner: ^2.4.13
 
@@ -55,3 +57,11 @@ dependency_overrides:
     git:
       url: https://github.com/LucJosin/on_audio_query.git
       path: packages/on_audio_query_android
+
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/default_song_cover.png"
+  min_sdk_android: 21 # optional
+  remove_alpha_ios: true # Required for Apple App Store guidelines

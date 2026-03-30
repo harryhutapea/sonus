@@ -25,13 +25,13 @@ class MusicScannerService {
         final box = Hive.box('settings_box');
         await box.put('music_folder_path', selectedDirectory);
 
-        print("📁 Folder selected and saved: $selectedDirectory");
+        // print("📁 Folder selected and saved: $selectedDirectory");
         return selectedDirectory;
       }
 
       return null; // User canceled the picker
     } catch (e) {
-      print("Error picking folder: $e");
+      // print("Error picking folder: $e");
       return null;
     }
   }
@@ -94,7 +94,7 @@ class MusicScannerService {
       }
     }
 
-    print("✅ Sync Complete. Total songs: ${box.length}");
+    // print("✅ Sync Complete. Total songs: ${box.length}");
   }
 
   // This function runs in the background (Isolate)
@@ -113,7 +113,7 @@ class MusicScannerService {
         }
       }
     } catch (e) {
-      print("Scan Error: $e");
+      // print("Scan Error: $e");
     }
 
     return results;

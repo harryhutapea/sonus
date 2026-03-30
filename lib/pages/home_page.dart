@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 
 import 'package:sonus/models/song.dart';
+import 'package:sonus/pages/add_to_playlist_page.dart';
 import 'package:sonus/services/database_service.dart';
 import 'package:sonus/services/music_scanner_service.dart';
 import 'package:sonus/services/player_service.dart';
@@ -173,7 +174,7 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.55),
+                    color: Colors.black.withValues(alpha: 0.55),
                     blurRadius: 40,
                     offset: const Offset(0, 14),
                   ),
@@ -224,7 +225,14 @@ class _HomePageState extends State<HomePage> {
                 ),
                 _iconBtn(
                   icon: Icons.playlist_add_rounded,
-                  onTap: () {/* TODO: add to playlist */},
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AddToPlaylistPage(song: song),
+                      ),
+                    );
+                  },
                 ),
                 const SizedBox(width: 6),
                 _iconBtn(
@@ -255,9 +263,9 @@ class _HomePageState extends State<HomePage> {
                       total: duration,
                       onSeek: _playerService.seek,
                       baseBarColor:
-                          AppColors.onSurfaceVariant.withOpacity(0.35),
+                          AppColors.onSurfaceVariant.withValues(alpha: 0.35),
                       progressBarColor: Colors.white,
-                      bufferedBarColor: Colors.white.withOpacity(0.15),
+                      bufferedBarColor: Colors.white.withValues(alpha: 0.15),
                       thumbColor: Colors.white,
                       thumbRadius: 7,
                       barHeight: 4,
@@ -346,7 +354,7 @@ class _HomePageState extends State<HomePage> {
               borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.brand.withOpacity(0.45),
+                  color: AppColors.brand.withValues(alpha: 0.45),
                   blurRadius: 18,
                   offset: const Offset(0, 6),
                 ),

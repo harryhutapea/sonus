@@ -117,18 +117,18 @@ class DatabaseService {
 
       if (await file.exists()) {
         await file.delete();
-        print("✅ File deleted from disk");
+        // print("✅ File deleted from disk");
       } else {
-        print("⚠️ File not found, skipping disk delete");
+        // print("⚠️ File not found, skipping disk delete");
       }
     } catch (e) {
-      print("❌ File delete error: $e");
+      // print("❌ File delete error: $e");
     }
 
     // ✅ ALWAYS delete from Hive (even if file fails)
     await box.delete(song.songPath);
-    print("🗑️ Song removed from database");
-    print("Deleting: ${song.songPath}");
+    // print("🗑️ Song removed from database");
+    // print("Deleting: ${song.songPath}");
   }
 
   String? getSavedFolderPath() {
