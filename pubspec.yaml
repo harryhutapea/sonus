@@ -60,8 +60,14 @@ dependency_overrides:
 
 
 flutter_launcher_icons:
-  android: "launcher_icon"
+  # General fallback (used for iOS)
+  # This should be your logo on a SOLID blue background (No transparency!)
+  image_path: "assets/icon_ios_blue_background.png" 
+
   ios: true
-  image_path: "assets/images/default_song_cover.png"
-  min_sdk_android: 21 # optional
-  remove_alpha_ios: true # Required for Apple App Store guidelines
+  remove_alpha_ios: true # Ensures Apple won't reject it
+
+  android: true
+  # Android specific "Adaptive" setup
+  adaptive_icon_background: "#2D3157" # Replace with your exact Blue Hex
+  adaptive_icon_foreground: "assets/icon/logo_transparent.png"
