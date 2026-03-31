@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:isolate';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 import 'package:on_audio_query/on_audio_query.dart';
 
@@ -39,7 +40,7 @@ class MusicScannerService {
   Future<void> syncLibrary() async {
     final box = Hive.box<Song>('songs_box');
 
-    // STEP 1: CLEANUP (same as before)
+    // STEP 1: CLEANUP — remove songs whose files no longer exist
     final currentHiveSongs = box.values.toList();
     for (var song in currentHiveSongs) {
       final file = File(song.songPath);
@@ -55,19 +56,27 @@ class MusicScannerService {
     // STEP 3: SCAN FILE PATHS (Isolate)
     List<String> paths = await Isolate.run(() => _scanDirectory(folderPath));
 
-    // STEP 4: EXTRACT METADATA (Main Thread)
+    // STEP 4: EXTRACT METADATA
+    // ✅ FIX: Wrap querySongs in try-catch.
+    // If runtime permissions are not granted, on_audio_query throws
+    // PlatformException(MissingPermissions) which previously caused an
+    // unhandled crash + native "Reply already submitted" fatal error.
+    // We fall back to using just the file name — the app stays alive.
     final OnAudioQuery audioQuery = OnAudioQuery();
+    Map<String, SongModel> songMap = {};
 
-    // 🔑 Get ALL device songs ONCE
-    final List<SongModel> deviceSongs = await audioQuery.querySongs(
-      uriType: UriType.EXTERNAL,
-      ignoreCase: true,
-    );
-
-    // Convert to map for fast lookup
-    final Map<String, SongModel> songMap = {
-      for (var s in deviceSongs) s.data: s,
-    };
+    try {
+      final List<SongModel> deviceSongs = await audioQuery.querySongs(
+        uriType: UriType.EXTERNAL,
+        ignoreCase: true,
+      );
+      songMap = {for (var s in deviceSongs) s.data: s};
+    } catch (e) {
+      // Permissions not granted or plugin error — continue without metadata.
+      // Songs will still be added using their file names.
+      debugPrint('MusicScannerService: querySongs failed ($e). '
+          'Falling back to file-name-only mode.');
+    }
 
     for (String path in paths) {
       if (box.containsKey(path)) continue;
@@ -78,8 +87,8 @@ class MusicScannerService {
         final song = Song(
           songName: metadata?.title ?? _getFileName(path),
           songPath: path,
-          artistName: metadata?.artist ?? "Unknown Artist",
-          coverPath: "assets/images/default_song_cover.png",
+          artistName: metadata?.artist ?? 'Unknown Artist',
+          coverPath: 'assets/images/default_song_cover.png',
         );
 
         await box.put(path, song);
@@ -87,14 +96,12 @@ class MusicScannerService {
         final song = Song(
           songName: _getFileName(path),
           songPath: path,
-          artistName: "Unknown Artist",
+          artistName: 'Unknown Artist',
         );
 
         await box.put(path, song);
       }
     }
-
-    // print("✅ Sync Complete. Total songs: ${box.length}");
   }
 
   // This function runs in the background (Isolate)

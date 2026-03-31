@@ -142,14 +142,13 @@ class _SongEditorSheetState extends State<_SongEditorSheet> {
     // ✅ FIX: Ganti AnimatedPadding (penyebab keyboard lambat) dengan Padding biasa.
     // MediaQuery.viewInsetsOf hanya subscribe ke viewInsets, bukan seluruh MediaQuery.
     // Ini jauh lebih efisien dan tidak menyebabkan rebuild setiap frame keyboard.
-    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Padding(
       padding: EdgeInsets.only(
         left: 16,
         right: 16,
         top: 16,
-        bottom: 16 + bottomInset,
+        bottom: 20,
       ),
       child: SingleChildScrollView(
         child: Column(

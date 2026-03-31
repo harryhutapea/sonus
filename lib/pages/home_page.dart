@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'package:sonus/models/song.dart';
 import 'package:sonus/pages/add_to_playlist_page.dart';
@@ -49,6 +50,15 @@ class _HomePageState extends State<HomePage> {
     if (db.isFirstRun()) {
       final proceed = await _showWelcomeDialog();
       if (proceed == true) {
+        // ✅ FIX: Request runtime permissions BEFORE calling syncLibrary.
+        // On first run, on_audio_query will crash with "Reply already submitted"
+        // if permissions haven't been granted yet when querySongs() is called.
+        await [
+          Permission.storage,
+          Permission.audio,
+          Permission.photos,
+        ].request();
+
         final path = await scanner.pickAndSaveNewFolder();
         if (path != null) {
           await scanner.syncLibrary();
