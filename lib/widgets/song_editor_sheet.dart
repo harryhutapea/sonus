@@ -139,16 +139,19 @@ class _SongEditorSheetState extends State<_SongEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // ✅ FIX: Ganti AnimatedPadding (penyebab keyboard lambat) dengan Padding biasa.
-    // MediaQuery.viewInsetsOf hanya subscribe ke viewInsets, bukan seluruh MediaQuery.
-    // Ini jauh lebih efisien dan tidak menyebabkan rebuild setiap frame keyboard.
+    // Keyboard avoidance: gunakan viewInsetsOf (hanya subscribe ke viewInsets,
+    // bukan seluruh MediaQuery — lebih efisien dari MediaQuery.of(context)).
+    // Tidak menyebabkan per-frame redraw karena MainActivity.installImeInterceptor
+    // memblokir intermediate insets ke Flutter selama animasi keyboard.
+    // Flutter hanya menerima satu update di akhir animasi (insets final).
+    final bottomInset = MediaQuery.viewInsetsOf(context).bottom;
 
     return Padding(
       padding: EdgeInsets.only(
         left: 16,
         right: 16,
         top: 16,
-        bottom: 20,
+        bottom: 48 + bottomInset,
       ),
       child: SingleChildScrollView(
         child: Column(
