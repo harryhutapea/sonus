@@ -36,14 +36,6 @@ Sonus is a local music player built with Flutter. It scans a folder on your devi
   <img src="assets/images/playlist_page.png" width="30%" />
 </p>
 
-Example:
-
-```md
-![Home Screen](./assets/screenshots/home.png)
-![Library Screen](./assets/screenshots/library.png)
-![Playlist Screen](./assets/screenshots/playlists.png)
-```
-
 ## Project Structure
 
 ```text
