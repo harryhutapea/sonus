@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Sonus
 
 Sonus is a local music player built with Flutter. It scans a folder on your device, builds a song library, lets you create playlists, and allows you to edit song metadata and cover art directly inside the app.
