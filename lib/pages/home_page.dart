@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/material.dart' hide RepeatMode;
+import 'package:flutter/widgets.dart' hide RepeatMode;
+
 import 'package:audio_video_progress_bar/audio_video_progress_bar.dart';
-import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -13,6 +15,7 @@ import 'package:sonus/services/music_scanner_service.dart';
 import 'package:sonus/services/player_service.dart';
 import 'package:sonus/theme/app_colors.dart';
 import 'package:sonus/widgets/song_editor_sheet.dart';
+import 'package:sonus/services/player_service.dart'; 
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
