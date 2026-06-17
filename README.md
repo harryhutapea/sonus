@@ -41,9 +41,9 @@ Sonus is a local music player built with Flutter. It scans a folder on your devi
 ```text
 sonus/
 ├── android/
-├── ios/
 ├── assets/
 │   ├── fonts/
+│   ├── icon/
 │   ├── images/
 │   └── svg/
 ├── lib/
@@ -53,7 +53,6 @@ sonus/
 │   ├── theme/
 │   ├── utils/
 │   └── widgets/
-├── web/
 ├── pubspec.yaml
 └── README.md
 ```
